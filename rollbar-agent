@@ -687,12 +687,6 @@ if __name__ == '__main__':
     parser = build_option_parser()
     (options, args) = parser.parse_args()
 
-    # now parse the config file
-    config = parse_config(options.config_file)
-
-    # validate - will exit if invalid
-    validate_config(config)
-
     # set up logging
     level = logging.INFO
     if options.verbose:
@@ -706,6 +700,12 @@ if __name__ == '__main__':
     handler.setLevel(level)
     log.addHandler(handler)
     log.setLevel(level)
+
+    # now parse the config file
+    config = parse_config(options.config_file)
+
+    # validate - will exit if invalid
+    validate_config(config)
 
     # start main loop
     main_loop()
