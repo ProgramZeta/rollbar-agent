@@ -99,7 +99,7 @@ def should_process_file(app_config, filename):
     return True
 
 
-def build_python_log_format_parser(format, datefmt):
+def build_python_log_format_parser(format, datefmt, using_regex=False):
     """
     Parses a python log format string, and returns a (regex, strptimeformat) to parse it.
     """
@@ -132,9 +132,16 @@ def build_python_log_format_parser(format, datefmt):
         '%(threadName)-20s': ('thread_name', '\S+ {,19}'),
     }
 
-    regex_str = '^' + re.escape(format) + '$'
+    if using_regex:
+        regex_str = '^' + format + '$'
+    else:
+        regex_str = '^' + re.escape(format) + '$'
+    
     for key, val in known_keys.iteritems():
-        search = re.escape(key)
+        if using_regex:
+            search = key
+        else:
+            search = re.escape(key)
         replacement = "(?P<%s>%s)" % val
         regex_str = regex_str.replace(search, replacement)
 
@@ -142,6 +149,8 @@ def build_python_log_format_parser(format, datefmt):
 
     return (re.compile(regex_str), datefmt)
 
+def build_regex_python_log_format_parser(format, datefmt):
+    build_python_log_format_parser(using_regex=True)
 
 def datefmt_to_regex(datefmt):
     # the below should work for en-us locale... probably won't work for all locales.
@@ -644,14 +653,19 @@ def parse_config(filename):
             except ConfigParser.NoOptionError:
                 format_datefmt = DEFAULT_DATEFMT
 
-            if format_type != 'python':
+            if format_type == 'python':
+                regex, datefmt = build_python_log_format_parser(format_spec, format_datefmt)
+            elif format_type == 'regex_python':
+                regex, datefmt = build_regex_python_log_format_parser(format_spec, format_datefmt)
+            else:
                 log.warning("Unrecognized format type: %s", format_type)
                 continue
-            regex, datefmt = build_python_log_format_parser(format_spec, format_datefmt)
+            
             format['regex'] = regex
             format['datefmt'] = datefmt
 
             config['_formats'][format_name] = format
+        
 
     global_config = cp.defaults()
     config['_global'] = {}
