@@ -150,7 +150,7 @@ def build_python_log_format_parser(format, datefmt, using_regex=False):
     return (re.compile(regex_str), datefmt)
 
 def build_regex_python_log_format_parser(format, datefmt):
-    build_python_log_format_parser(format, datefmt, using_regex=True)
+    return build_python_log_format_parser(format, datefmt, using_regex=True)
 
 def datefmt_to_regex(datefmt):
     # the below should work for en-us locale... probably won't work for all locales.
